@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<config>
+    <modules>
+        <Wyomind_Botdefender>
+            <version>1.0.0</version>
+        </Wyomind_Botdefender>
+    </modules>
+    <default>
+        <botdefender> 
+            <settings>
+                <enabled>1</enabled> 
+                <debug>0</debug>
+            </settings>
+        </botdefender>
+    </default>
+    <frontend>
+        <layout>
+            <updates>
+                <botdefender>
+                    <file>botdefender.xml</file>
+                </botdefender>
+            </updates>
+        </layout>
+       
+    </frontend>
+    <adminhtml>
+        <layout>
+            <updates>
+                <botdefender>
+                    <file>botdefender.xml</file>
+                </botdefender>
+            </updates>
+        </layout>
+        <acl>
+            <resources>
+                <all>
+                    <title>Allow Everything</title>
+                </all>
+                <admin>
+                    <children>
+                        <system>
+                            <children>
+                                <config>
+                                    <children>
+                                        <botdefender> 
+                                            <title>Bot Defender</title>
+                                        </botdefender>
+                                    </children>
+                                </config>
+                            </children>
+                        </system>
+                    </children>
+                </admin>
+            </resources>
+        </acl> 
+    </adminhtml>
+    <global>
+        <blocks>
+            <botdefender>
+                <class>Wyomind_Botdefender_Block</class>
+            </botdefender>
+        </blocks>
+        <resources>
+            <botdefender_setup>
+                <setup>
+                    <module>Wyomind_Botdefender</module>
+                </setup>
+            </botdefender_setup>
+        </resources>
+        <helpers>
+            <botdefender>
+                <class>Wyomind_Botdefender_Helper</class>
+            </botdefender>
+        </helpers>
+    </global>
+</config>
