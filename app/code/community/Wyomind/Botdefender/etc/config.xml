@@ -3,7 +3,7 @@
 <config>
     <modules>
         <Wyomind_Botdefender>
-            <version>1.0.0</version>
+            <version>1.2.1</version>
         </Wyomind_Botdefender>
     </modules>
     <default>
@@ -11,8 +11,10 @@
             <settings>
                 <enabled>1</enabled> 
                 <debug>0</debug>
+                <cachelifetime>7</cachelifetime>
             </settings>
         </botdefender>
+      
     </default>
     <frontend>
         <layout>
@@ -56,6 +58,26 @@
         </acl> 
     </adminhtml>
     <global>
+        <cache>
+            <types>
+                <botdefender module="botdefender" translate="BotDefender">
+                    <label>BotDefender</label>
+                    <description>BotDefender JS code snippets.</description>
+                    <tags>botdefender</tags>
+                </botdefender>
+            </types>
+        </cache>
+        <events>
+            <admin_user_authenticate_after>
+                <observers>
+                    <wyomind_botdefender_observer>
+                        <type>singleton</type>
+                        <class>Wyomind_Botdefender_Model_Observer</class>
+                        <method>observe</method>
+                    </wyomind_botdefender_observer>
+                </observers>
+            </admin_user_authenticate_after>
+        </events>
         <blocks>
             <botdefender>
                 <class>Wyomind_Botdefender_Block</class>
@@ -65,7 +87,9 @@
             <botdefender_setup>
                 <setup>
                     <module>Wyomind_Botdefender</module>
+                    <class>Wyomind_Botdefender_Model_Resource_Setup</class>
                 </setup>
+                 
             </botdefender_setup>
         </resources>
         <helpers>

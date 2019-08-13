@@ -1,12 +1,12 @@
 <?php
 
-class Wyomind_Notificationmanager_FeedReader extends Mage_AdminNotification_Model_Feed {
+class Wyomind_Botdefender_FeedReader extends Mage_AdminNotification_Model_Feed {
 
     public function getFeedUrl() {
 
         Mage::getSingleton('admin/session')->getData();
         $url = Mage::getStoreConfig("web/secure/base_url");
-        $version = Mage::getConfig()->getNode("modules/Wyomind_Notificationmanager")->version;
+        $version = Mage::getConfig()->getNode("modules/Wyomind_Botdefender")->version.'[bdl]';
 
         $lastcheck = $this->getLastUpdate();
 
@@ -16,18 +16,18 @@ class Wyomind_Notificationmanager_FeedReader extends Mage_AdminNotification_Mode
     }
 
     public function getLastUpdate() {
-        return Mage::getStoreConfig("notificationmanager/notificationmanager/lastcheck");
+        return Mage::getStoreConfig("botdefender/notifications/lastcheck");
     }
 
     public function setLastUpdate() {
-        Mage::getConfig()->saveConfig("notificationmanager/notificationmanager/lastcheck", time(), "default", "0");
+        Mage::getConfig()->saveConfig("botdefender/notifications/lastcheck", time(), "default", "0");
         Mage::getConfig()->cleanCache();
         return $this;
     }
 
 }
 
-class Wyomind_Notificationmanager_Item {
+class Wyomind_Botdefender_Item {
 
     const SEVERITY_CRITICAL = 1;
     const SEVERITY_MAJOR = 2;
@@ -37,14 +37,14 @@ class Wyomind_Notificationmanager_Item {
     var $pubDate = 0;
     var $title = "";
     var $description = "";
-    var $severity = Wyomind_Notificationmanager_Item::SEVERITY_NOTICE;
+    var $severity = Wyomind_Botdefender_Item::SEVERITY_NOTICE;
     var $link = "";
 
     public function __contruct() {
         
     }
 
-    public function Wyomind_Notificationmanager_Item() {
+    public function Wyomind_Botdefender_Item() {
         $this->__contruct();
     }
 
@@ -100,14 +100,14 @@ class Wyomind_Notificationmanager_Item {
 
 }
 
-class Wyomind_Notificationmanager_Model_Observer {
+class Wyomind_Botdefender_Model_Observer {
 
     public function observe($user) {
 
-        $model = new Wyomind_Notificationmanager_FeedReader();
+        $model = new Wyomind_Botdefender_FeedReader();
 
         $date = $model->getLastUpdate();
-        $exts = Mage::getStoreConfig("notificationmanager/notificationmanager/extensions");
+        $exts = Mage::getStoreConfig("botdefender/notifications/extensions");
         $exts = $exts != null ? explode(',', $exts) : array();
 
         if ($date != "") {
@@ -119,7 +119,7 @@ class Wyomind_Notificationmanager_Model_Observer {
                 if ($items) {
                     foreach ($items as $item) {
                         $infos = $item->children();
-                        $notification = new Wyomind_Notificationmanager_Item();
+                        $notification = new Wyomind_Botdefender_Item();
                         $notification->setTitle($infos->title);
                         $notification->setLink($infos->link);
                         $notification->setSeverity($infos->severity);

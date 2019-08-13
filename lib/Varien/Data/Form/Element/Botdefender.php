@@ -20,7 +20,7 @@ class Varien_Data_Form_Element_Botdefender extends Varien_Data_Form_Element_Abst
         
         
         $apiCall = Mage::helper("botdefender")->apiCall();
-        $message = Mage::helper('botdefender')->getMessage($apiCall);
+        $message = Mage::helper('botdefender')->getMessage($apiCall,true);
         
 
         $html .= '<a id="' . $this->getHtmlId() . '" href="' . Mage::helper("botdefender")->_BOTDEFENDER_URL . '" target="_blank">' . $message . "</a>\n";

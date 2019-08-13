@@ -47,8 +47,8 @@
                
                             </comment>
                             <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
                         </enabled>
                         <lokad_user translate="label comment">
                             <label>BotDefender username</label>
@@ -72,17 +72,29 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                         </lokad_password>
+                        
+                        <cachelifetime translate="label comment">
+                            <label>Cache lifetime</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>4</sort_order>
+                            <comment>
+                <![CDATA[<span class="notice">Cache lifetime in days</span>]]>
+                            </comment>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </cachelifetime>
                         <debug translate="label comment">
                             <label>Debug mode enabled</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>4</sort_order>
+                            <sort_order>5</sort_order>
                             <comment>
                 <![CDATA[<span class="notice" style="color:red;">Do not use in production</span>]]>
                             </comment>
                             <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
                         </debug>
                         <ips translate="label comment">
                             <label>Allowed IPs (comma separated)</label>
@@ -90,25 +102,25 @@
                             <depends>
                                 <debug>1</debug>
                             </depends>
-                            <sort_order>5</sort_order>
+                            <sort_order>6</sort_order>
                             <comment>
                 <![CDATA[<span class="notice" style="color:red;">Leave empty for access from any location</span>]]>
                             </comment>
                             <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
                         </ips>
                         <log translate="label comment">
                             <label>Enable log file</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>46</sort_order>
+                            <sort_order>7</sort_order>
                             <comment>
                 <![CDATA[<span class="notice" style="color:red;">Log file available under var/log/BotDefender.log if general log settings are enabled</span>]]>
                             </comment>
                             <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
                         </log>
                         
 			
