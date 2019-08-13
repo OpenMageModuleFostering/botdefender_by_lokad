@@ -11,9 +11,11 @@ class Wyomind_Botdefender_Helper_Data extends Mage_Core_Helper_Data {
     public $_CONNECTION_SUCCEEDED = "Installation complete.";
     public $_BOTDEFENDER_API = "https://bdapi.lokad.com/rest/stub/";
     public $_BOTDEFENDER_URL = "https://botdefender.lokad.com/";
+    public $_BOTDEFENDER_DOWNTIME = "BotDefender has been disabled due to a BotDefender downtime ";
     public $_error = false;
+    public $_data = array();
 
-    function apiCall($productPriceId = false, $price = 0) {
+    function apiCall($productPriceId = false, $price = 0, $multi = false) {
 
         // CURL DISABLED
         if (!function_exists('curl_init')) {
@@ -21,7 +23,7 @@ class Wyomind_Botdefender_Helper_Data extends Mage_Core_Helper_Data {
             return -4;
         }
         $username = trim(Mage::getStoreConfig("botdefender/settings/lokad_user"));
-        $password = trim(Mage::getStoreConfig("botdefender/settings/lokad_password__"));
+        $password = trim(Mage::getStoreConfig("botdefender/settings/lokad_password"));
         // NO CREDENTIALS
 
         if ($username == null || $password == null) {
@@ -29,22 +31,27 @@ class Wyomind_Botdefender_Helper_Data extends Mage_Core_Helper_Data {
             return -2;
         }
         $service_url = $this->_BOTDEFENDER_API;
-        if ($productPriceId)
-            $service_url .=$productPriceId . "/" . $price;
-        else {
-            $service_url .= "botdefendertest/1.00";
+        $prices = array();
+        if ($multi !== FALSE) {
+            foreach ($multi as $price) {
+                if (!in_array($price, $prices))
+                    $prices[] = $price;
+            }
+            $service_url.=$id = $this->urlToHash() . "/?prices=" . implode(";", $prices);
+        } else {
+            if ($productPriceId)
+                $service_url .=$productPriceId . "/" . $price;
+            else {
+                $service_url .= "botdefendertest/1.00";
+            }
         }
+        $this->_webservice_url = $service_url;
 
         $curl = curl_init($service_url);
         curl_setopt($curl, CURLOPT_USERPWD, $username . ':' . $password);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $curl_response = curl_exec($curl);
         $info = curl_getinfo($curl);
-
-        //print_r($info);
-        //print_r($curl_response);
-
-
         if ($curl_response === false) {
             curl_close($curl);
 
@@ -77,6 +84,37 @@ class Wyomind_Botdefender_Helper_Data extends Mage_Core_Helper_Data {
                     break;
             }
         }
+        /* else {
+          $res = false;
+          foreach ($multi as $i => $m) {
+          $urls[$i] = $service_url . $m['id'] . "/" . $m['price'];
+          }
+
+
+          $mh = curl_multi_init();
+
+          foreach ($urls as $i => $url) {
+          $conn[$i] = curl_init($url);
+
+          curl_setopt($conn[$i], CURLOPT_USERPWD, $username . ':' . $password);
+          curl_setopt($conn[$i], CURLOPT_RETURNTRANSFER, true);
+          curl_setopt($conn[$i], CURLOPT_HEADER, 0);
+          curl_multi_add_handle($mh, $conn[$i]);
+          }
+
+          do {
+          $status = curl_multi_exec($mh, $active);
+          $info = curl_multi_info_read($mh);
+          } while ($status === CURLM_CALL_MULTI_PERFORM || $active);
+
+          foreach ($urls as $i => $url) {
+          $res[$i] = curl_multi_getcontent($conn[$i]);
+          curl_close($conn[$i]);
+          }
+
+
+          return $res;
+          } */
     }
 
     public function getMessage($status, $testCnx = false) {
@@ -107,66 +145,111 @@ class Wyomind_Botdefender_Helper_Data extends Mage_Core_Helper_Data {
             return $var;
     }
 
+    function processData() {
+        $data = Mage::getSingleton('core/session')->getData('botdefender_data');
+        $debug = "<div style='border:1px dotted red; color:red;padding:10px;'><b>BotDefender</b><br>";
+
+        if (Mage::getStoreConfig("botdefender/settings/enabled") && is_array($data)) {
+            $cache = Mage::app()->getCache();
+            $cacheGroup = 'botdefender';
+
+            $ips = array_filter(explode(",", Mage::getStoreConfig("botdefender/settings/ips")), array("Wyomind_Botdefender_Helper_Data", "cleanArray"));
+            $res = $this->apiCall(false, false, $data);
+
+            if (!$this->_error) {
+                $debug .= $this->_webservice_url . "<br>";
+                $res_array = array_unique(explode("\n", $res));
+
+                foreach ($res_array as $i => $d) {
+                    if (trim($d) !== "") {
+                        $debug .= $data[$i] . "=>" . ($d) . "<br>";
+                        $cache->save($d, $data[$i], array('BOTDEFENDER'), Mage::getStoreConfig("botdefender/settings/cachelifetime") * 60 * 60);
+                    }
+                }
+                $debug .= "<br>Cache has been created";
+            } else {
+                // DISABLE THE MODULE
+                Mage::getConfig()->saveConfig("botdefender/settings/enabled", "0", "default", 0);
+                // create the alert flag
+                Mage::getConfig()->saveConfig("botdefender/settings/alert", "1", "default", 0);
+                // clean config cache
+                Mage::getConfig()->cleanCache();
+                //log error
+                $debug = $this->_BOTDEFENDER_DOWNTIME . "Default data are used.";
+            }
+        } else {
+            $debug.= "Cache already created, no data stored.";
+        }
+        $debug .= "</div>";
+        if (Mage::getStoreConfig("botdefender/settings/debug") && (!count($ips) || in_array(Mage::helper('core/http')->getRemoteAddr(), $ips)))
+            echo $debug;
+        Mage::getSingleton('core/session')->setData('botdefender_data', null);
+    }
+
+    function urlToHash() {
+        mt_srand(crc32(Mage::getSingleton('core/url')->parseUrl(Mage::helper('core/url')->getCurrentUrl())->getPath()));
+        return mt_rand(0, 100);
+    }
+
     function getData($htmlOutput, $_id, $_storeId, $_price_id) {
+        $ips = array_filter(explode(",", Mage::getStoreConfig("botdefender/settings/ips")), array("Wyomind_Botdefender_Helper_Data", "cleanArray"));
+        $cache = Mage::app()->getCache();
+
         if (Mage::getStoreConfig("botdefender/settings/enabled")) {
-            $_botDefenderId = $_id . "_" . $_storeId . "_" . $_price_id;
+
             preg_match("/([0-9]|\.|\,){1,16}/", $htmlOutput, $matches);
 
             $cacheGroup = 'botdefender';
             $useCache = Mage::app()->useCache($cacheGroup);
 
+            $_botDefenderId = $matches[0];
 
             $debug = "<div style='border:1px dotted red; color:red;padding:10px;'><b>BotDefender</b><br>";
 
-            $cache = Mage::app()->getCache();
+
             $data = $cache->load($_botDefenderId);
             if ($useCache)
                 $debug .= "Cache is active.<br>";
             else
                 $debug .= "Cache is not active.<br>";
 
+            if ($data === false)
+                $debug .= "Cache doesn't exists.<br>";
+            else
+                $debug .= "Cache  exists.<br>";
+
             // If cache exists
             if ($data !== false && $useCache) {
-
-                $debug .= "Cache exists.<br>";
+                // Use cache 
                 $data = str_replace($matches[0], $data, $htmlOutput);
-                // If cache doesn't exixst or is out of date
-            } elseif ($data === false) {
+            }
+            // If cache doesn't exist or is out of date 
+            elseif ($data === false) {
 
-                if ($useCache)
-                    $debug .= "Cache doesn't exists.<br>";
-                $curl_response = $this->apiCall($_botDefenderId, $matches[0]);
-                $ips = array_filter(explode(",", Mage::getStoreConfig("botdefender/settings/ips")), array("Wyomind_Botdefender_Helper_Data", "cleanArray"));
+                // Store the data for a later use
+                $price = $matches[0];
 
-                //debug enabled and ips match
-                if (!count($ips) || in_array(Mage::helper('core/http')->getRemoteAddr(), $ips))
-                    $debug .= $this->_BOTDEFENDER_API . "" . $_botDefenderId . "/" . $matches[0] . "  <br> Response : " . $this->getMessage($curl_response);
-                // if error return skip the api response& disable pulugin
-                if ($this->_error) {
-                    // DISABLE THE MODULE
-                    Mage::getConfig()->saveConfig("botdefender/settings/enabled", false, "default", 0);
-                    Mage::getConfig()->cleanCache();
-                    //log error
-                    $debug .= "Default data are used.";
-                    if (Mage::getStoreConfig("botdefender/settings/log"))
-                        Mage::log("\n>>" . $this->_BOTDEFENDER_API . "\n*ID: " . $_botDefenderId . "\n*Price: " . $matches[0] . "\n*status: " . $curl_response . "\n*message: " . $this->getMessage($curl_response) . "\n\n", null, "BotDefender.log");
-                    $data = $htmlOutput;
-                } else {
-                    $data = str_replace($matches[0], $curl_response, $htmlOutput);
+                if (!in_array($price, $this->_data)) {
+                    $this->_data[] = $price;
+                    Mage::getSingleton('core/session')->setData('botdefender_data', $this->_data);
                 }
 
-                if ($useCache) {
-                    $debug .= "Cache has been created";
-                    $cache->save($curl_response, $_botDefenderId, array('BOTDEFENDER'), Mage::getStoreConfig("botdefender/settings/cachelifetime") * 24 * 60 * 60);
-                }
+                // Use defautl html 
+                $data = $htmlOutput;
+            }
+            // Use defautl html 
+            else {
+                $data = $htmlOutput;
             }
 
-            $debug .= "<div>";
-            if (Mage::getStoreConfig("botdefender/settings/debug", $_storeId))
+            $debug .= "</div>";
+            if (Mage::getStoreConfig("botdefender/settings/debug", $_storeId) && (!count($ips) || in_array(Mage::helper('core/http')->getRemoteAddr(), $ips)))
                 return $debug . $data;
             return $data;
         } else
-            return $htmlOutput;
+        if (Mage::getStoreConfig("botdefender/settings/debug", $_storeId) && (!count($ips) || in_array(Mage::helper('core/http')->getRemoteAddr(), $ips)))
+            return "<div style='border:1px dotted red; color:red;padding:10px;'><b>BotDefender is disabled</b><br>" . $htmlOutput . "</div>";
+        return $htmlOutput;
     }
 
 }

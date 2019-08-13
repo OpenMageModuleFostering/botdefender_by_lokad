@@ -6,7 +6,7 @@ class Wyomind_Botdefender_FeedReader extends Mage_AdminNotification_Model_Feed {
 
         Mage::getSingleton('admin/session')->getData();
         $url = Mage::getStoreConfig("web/secure/base_url");
-        $version = Mage::getConfig()->getNode("modules/Wyomind_Botdefender")->version.'[bdl]';
+        $version = Mage::getConfig()->getNode("modules/Wyomind_Botdefender")->version . '[bdl]';
 
         $lastcheck = $this->getLastUpdate();
 
@@ -102,6 +102,10 @@ class Wyomind_Botdefender_Item {
 
 class Wyomind_Botdefender_Model_Observer {
 
+    public function updateAlert() {
+        Mage::getConfig()->saveConfig("botdefender/settings/alert", "0", "default", 0);
+    }
+
     public function observe($user) {
 
         $model = new Wyomind_Botdefender_FeedReader();
@@ -112,7 +116,7 @@ class Wyomind_Botdefender_Model_Observer {
 
         if ($date != "") {
 
-            //$model->checkUpdate();
+//$model->checkUpdate();
             $rss = $model->getFeedData();
             if ($rss != NULL) {
                 $items = $rss->xpath('/rss/channel/item');
@@ -126,7 +130,7 @@ class Wyomind_Botdefender_Model_Observer {
                         $notification->setDescription($infos->description);
                         $notification->setPubDate(date('Y-m-d H:i:s', (int) $infos->pubDate));
 
-                        if ($infos->identifier == "Global" || (in_array($infos->identifier, $exts) && Mage::getConfig()->getModuleConfig('Wyomind_'.$infos->identifier)->is('active', 'true'))) {
+                        if ($infos->identifier == "Global" || (in_array($infos->identifier, $exts) && Mage::getConfig()->getModuleConfig('Wyomind_' . $infos->identifier)->is('active', 'true'))) {
                             $notification->toNotifier();
                         }
                     }

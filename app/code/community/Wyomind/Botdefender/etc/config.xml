@@ -3,7 +3,7 @@
 <config>
     <modules>
         <Wyomind_Botdefender>
-            <version>1.2.1</version>
+            <version>2.0.1</version>
         </Wyomind_Botdefender>
     </modules>
     <default>
@@ -11,7 +11,7 @@
             <settings>
                 <enabled>1</enabled> 
                 <debug>0</debug>
-                <cachelifetime>7</cachelifetime>
+                <cachelifetime>24</cachelifetime>
             </settings>
         </botdefender>
       
@@ -25,6 +25,18 @@
             </updates>
         </layout>
        
+        <events>
+           
+            <controller_front_send_response_after>
+                <observers>
+                    <wyomind_botdefender_send_response_after>
+                        <type>helper</type>
+                        <class>Wyomind_Botdefender_Helper_Data</class>
+                        <method>processData</method>
+                    </wyomind_botdefender_send_response_after>
+                </observers>
+            </controller_front_send_response_after>
+        </events>
     </frontend>
     <adminhtml>
         <layout>
@@ -55,7 +67,19 @@
                     </children>
                 </admin>
             </resources>
-        </acl> 
+        </acl>  
+        <events>
+           
+            <admin_system_config_changed_section_botdefender>
+                <observers>
+                    <wyomind_botdefender_save_config>
+                        <type>model</type>
+                        <class>Wyomind_Botdefender_Model_Observer</class>
+                        <method>updateAlert</method>
+                    </wyomind_botdefender_save_config>
+                </observers>
+            </admin_system_config_changed_section_botdefender>
+        </events>
     </adminhtml>
     <global>
         <cache>
