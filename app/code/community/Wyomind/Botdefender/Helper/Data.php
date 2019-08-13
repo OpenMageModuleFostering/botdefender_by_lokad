@@ -48,10 +48,12 @@ class Wyomind_Botdefender_Helper_Data extends Mage_Core_Helper_Data {
         $this->_webservice_url = $service_url;
 
         $curl = curl_init($service_url);
+       
         curl_setopt($curl, CURLOPT_USERPWD, $username . ':' . $password);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $curl_response = curl_exec($curl);
         $info = curl_getinfo($curl);
+      
         if ($curl_response === false) {
             curl_close($curl);
 

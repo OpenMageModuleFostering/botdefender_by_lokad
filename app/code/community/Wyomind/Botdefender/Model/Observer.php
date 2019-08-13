@@ -1,5 +1,6 @@
 <?php
 
+
 class Wyomind_Botdefender_FeedReader extends Mage_AdminNotification_Model_Feed {
 
     public function getFeedUrl() {
@@ -101,6 +102,16 @@ class Wyomind_Botdefender_Item {
 }
 
 class Wyomind_Botdefender_Model_Observer {
+
+    public function checkStatus() {
+        
+       if (Mage::getStoreConfig("botdefender/settings/alert") == 1) {
+            if (Mage::helper("botdefender")->apiCall()) {
+                Mage::getConfig()->saveConfig("botdefender/settings/enabled", "1", "default", 0);
+                Mage::getConfig()->saveConfig("botdefender/settings/alert", "0", "default", 0);
+            }
+        }
+    }
 
     public function updateAlert() {
         Mage::getConfig()->saveConfig("botdefender/settings/alert", "0", "default", 0);
