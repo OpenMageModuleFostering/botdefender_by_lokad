@@ -1,17 +1,5 @@
 {
-    "name": "OpenMageModuleFostering/BotDefender_by_Lokad",
-    "type": "magento-module",
-    "license": "OSL-v3.0",
-    "homepage": "",
-    "description": "Protect your store from the automated retrieval of your prices by competitors.
-Stop being outpriced every time you make a move. Best suited for retailers.",
-    "authors": [
-    {
-        "name": "Wyomind",
-        "email": "contact@wyomind.com"
-    }
-],
-    "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+    "keywords": [
+        "openmage-module"
+    ]
 }
